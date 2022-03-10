@@ -54,13 +54,13 @@ def timesort(filelist, datapath, date_key = 'DATE-OBSd', print_list = False):
     Author(s): Al Harper
     Modified: 210807
     Version: 1.0
-    '''    
+    '''
     date_obs = []                                           # Make a list to hold the date-obs keyword strings.
     fd = DataFits(config=config)                            # Make a PipeData object.
     for i in range(len(filelist)):                          # Make a PipeData object.
         fd.loadhead(os.path.join(datapath,filelist[i]))
         date_obs.append(fd.header.get('date-obs','None'))   # Add date information to list. of string objects.
-    t = Time(date_obs, format='isot', scale='utc')          # Make an astropy time object in 'isot' format.  
+    t = Time(date_obs, format='isot', scale='utc')          # Make an astropy time object in 'isot' format.
     tsort = np.argsort(t)                                   # Make a list of indices that will sort by date_obs.
     tfiles = []
     utime = []
@@ -88,7 +88,7 @@ def timesortHDR(filelist, datapath, date_key = 'date-obs', print_list = False):
     Modified: 210807, 210815
     Version: 1.1
     '''
-    
+
     date_obs = []                                                # Make a list to hold the date-obs keyword strings.
     fd = DataFits(config=config)                                 # Make a PipeData object.
     for i in range(len(filelist)):
@@ -97,11 +97,11 @@ def timesortHDR(filelist, datapath, date_key = 'date-obs', print_list = False):
             fd.load(fname)                                       # Load the fits file into the PipeData object.
             head = fd.getheader(fd.imgnames[1])                  # Get the header of the second HDU (index = [1]).
             date_obs.append(head[date_key])                      # Add date information to list. of string objects.
-        else: 
+        else:
             fd.load(fname)                                       # Load the fits file.                                       # Load the fits file.
             head = fd.getheader()                                # Get the header of the primary HDU (index = [0]).
             date_obs.append(head[date_key])                      # Add date information to list. of string objects.
-    t = Time(date_obs, format='isot', scale='utc')               # Make an astropy time object in 'isot' format.  
+    t = Time(date_obs, format='isot', scale='utc')               # Make an astropy time object in 'isot' format.
     tsort = np.argsort(t)                                        # Make a list of indices that will sort by date_obs.
     tfiles = []
     utime = []
@@ -114,7 +114,7 @@ def timesortHDR(filelist, datapath, date_key = 'date-obs', print_list = False):
     return tfiles, utime
 
 
-def expsortHDR(filelist, datapath, print_list = False):   
+def expsortHDR(filelist, datapath, print_list = False):
     '''
     Sorts a list of fits files by a header keyword with an exposure time value. In the case of an
     SBIG CMOS camera RAW file, the exposure time is read from the second HDU.
@@ -128,8 +128,8 @@ def expsortHDR(filelist, datapath, print_list = False):
     Author(s): Carmen Choza
     Modified: 210812
     Version: 1.0
-    '''    
-    
+    '''
+
     exptime = []
     df = DataFits()
     for i in range(len(filelist)):
@@ -155,7 +155,7 @@ def expsortHDR(filelist, datapath, print_list = False):
 
 
 def histogram2(img, titlestring = '', NBINS=800, percent=(.05,.05), figsize=(18,8), display_lims=(0,1000), \
-               mask_lims=[0,3500], use_percent=True):  
+               mask_lims=[0,3500], use_percent=True):
     '''
     Makes two histograms of an image. One includes all points and one includes all points within specified
     limits. If there are nans in the image, they are set to a value just smaller than the minimum value of
@@ -179,7 +179,7 @@ def histogram2(img, titlestring = '', NBINS=800, percent=(.05,.05), figsize=(18,
     '''
 
     # plt.figure(figsize = figsize)
-    
+
     ## Set any nans to a value just smaller than img minimum so the histogram won't get confused.
     newimg = img.copy()
     imgmin = np.nanmin(img)
@@ -204,14 +204,14 @@ def histogram2(img, titlestring = '', NBINS=800, percent=(.05,.05), figsize=(18,
     ## Make masks and calculate how many pixels fall below and above limits.
     if use_percent == True:
         mask_lims[0], mask_lims[1] = lower_value, upper_value
-        
-    ## Create some masks for pixels below and above 
+
+    ## Create some masks for pixels below and above
     undermask, overmask = np.where(newimg < mask_lims[0]), np.where(newimg > mask_lims[1])
     return undermask, overmask, mask_lims
 
 def read_oneDF(whichfiles, whichfile, whichpath, convert_raw=False):
     '''
-    Read one fits file into a DataFits object. If the file is an SBIG CMOS camera RAW file, 
+    Read one fits file into a DataFits object. If the file is an SBIG CMOS camera RAW file,
     strip the overscan rows from the image and create a header keyword with value equal to
     the mean value of the overscan region.
     Returns:
@@ -220,14 +220,15 @@ def read_oneDF(whichfiles, whichfile, whichpath, convert_raw=False):
         whichfiles:      List of fits files
         whichfile:       Index number of file to be selected from list
         whichpath:       Path to directory where files are stored
-        convert_raw:     If True, strip overscan columns from SBIG CMOS camera images 
+        convert_raw:     If True, strip overscan columns from SBIG CMOS camera images
                          and add overscan mean to header. Default = False
     Author(s): Al Harper
     Modified: 210805
               211125: Modified to read bin2 as well as bin1 images.
     Version 1.1
     '''
-    fitsfilename = os.path.join(whichpath,whichfiles[whichfile])
+    #fitsfilename = os.path.join(whichpath,whichfiles[whichfile])
+    fitsfilename = whichfiles[whichfile]
     if 'bin1L' in fitsfilename and '_RAW.fit' in whichfiles[whichfile]:
         ddf = DataFits(config=config)
         ddf.load(fitsfilename)
@@ -239,7 +240,7 @@ def read_oneDF(whichfiles, whichfile, whichpath, convert_raw=False):
     else:
         df = DataFits(config=config)                # Create a DataPype DataFits io object.
         df.load(fitsfilename)                       # Loads the file.
-        
+
     ## Crop over-scan columns from image and create over-scan image (only for bin=1L SBIG CMOS camera images).
     if camera == 'SBIG' and '_RAW.fit' and '_bin1' in whichfiles[whichfile] and convert_raw == True:
         osimg = df.image[:,4096:]
@@ -260,7 +261,7 @@ def make_stackDF(whichfiles, whichpath):
     Make a stack of images, a list of headers from those images, and calculate some medians and stds
     that will help set autoscaling parameters. If camera == 'SBIG', crop the overscan columns and create
     an overscan image. If the data were taken in low-gain mode, fix the FITS format of the low-gain image.
-    
+
     Returns:
         image    =  a 3-dimensional image (an "image stack")
         headlist =  a list of the primary headers of the imaes in the stack
@@ -296,7 +297,10 @@ def make_stackDF(whichfiles, whichpath):
     return image, headlist, stats
 
 def make_hotpix_mask(darkfolder, exposure = "128"):
-    darkfiles = sorted([f for f in os.listdir(darkfolder) if '.fit' in f and 'MDARK' in f and exposure in f])
+    if type(darkfolder) is list:
+        darkfiles = darkfolder
+    else:
+        darkfiles = sorted([f for f in os.listdir(darkfolder) if '.fit' in f and 'MDARK' in f and exposure in f])
     darkH_df = read_oneDF(darkfiles,0,darkfolder)
     global darkH
     darkH = darkH_df.image
@@ -335,7 +339,10 @@ def find_band(filepath):
 
 def load_bias(biasfolder):
     ## List the files in biaspath.
-    biasfiles = [f for f in os.listdir(biasfolder) if 'PFIT' in f]    #  and 'dark' in f]
+    if type(biasfolder) is list:
+        biasfiles = biasfolder
+    else:
+        biasfiles = [f for f in os.listdir(biasfolder) if 'PFIT' in f]    #  and 'dark' in f]
     biasH_df = read_oneDF(biasfiles,0,biasfolder)
     global biasH
     biasH = biasH_df.image[1]
@@ -345,7 +352,10 @@ def load_bias(biasfolder):
     print("loaded bias")
 
 def load_flat(flatfolder, band_string = "", curr_date = np.datetime64('today', 'D')):
-    flatfiles = [f for f in os.listdir(flatfolder) if '.fit' in f and 'MFLAT' in f]
+    if type(flatfolder) is list:
+        flatfiles = flatfolder
+    else:
+        flatfiles = [f for f in os.listdir(flatfolder) if '.fit' in f and 'MFLAT' in f]
     whichfile = -1
     filecandidates = set()
     if band_string == "":
@@ -374,12 +384,19 @@ def load_flat(flatfolder, band_string = "", curr_date = np.datetime64('today', '
     print(f"loaded flats for band {band_string}")
 
 def load_datafiles(datapath, object_name = "", band_string = ""):
-    files = [f for f in os.listdir(datapath) if '.fit' and 'RAW' in f\
-            and '_bin1_' not in f and 'dark' not in f and object_name in f and band_string in f]
-    files_L = sorted([f for f in files if 'bin1L' in f],
-                        key = lambda x : fits.open(os.path.join(datapath,x))[1].header['DATE-OBS'])
-    files_H = sorted([f for f in files if 'bin1H' in f],
-                        key = lambda x: fits.open(os.path.join(datapath,x))[0].header['DATE-OBS'])
+    if type(datapath) is list:
+        files = datapath
+        files_L = sorted([f for f in files if 'bin1L' in f],
+                            key = lambda x : fits.open(x)[1].header['DATE-OBS'])
+        files_H = sorted([f for f in files if 'bin1H' in f],
+                            key = lambda x: fits.open(x)[0].header['DATE-OBS'])
+    else:
+        files = [f for f in os.listdir(datapath) if '.fit' and 'RAW' in f\
+                and '_bin1_' not in f and 'dark' not in f and object_name in f and band_string in f]
+        files_L = sorted([f for f in files if 'bin1L' in f],
+                            key = lambda x : fits.open(os.path.join(datapath,x))[1].header['DATE-OBS'])
+        files_H = sorted([f for f in files if 'bin1H' in f],
+                            key = lambda x: fits.open(os.path.join(datapath,x))[0].header['DATE-OBS'])
     print("Processing the following files:")
     for i in range(len(files_L)):
         print(i, files_L[i])
@@ -411,7 +428,7 @@ def process_hdr_images(dataH, dataL):
     '''Process high-gain data'''
     # bias-dark-flat processing
     dataHbdf = ((dataH - biasH) - (darkH - biasH))/flatH
-    # Apply hotpix mask (in case not all hot pixels captured in flat above) 
+    # Apply hotpix mask (in case not all hot pixels captured in flat above)
     dataHbdfx = dataHbdf.copy()
     dataHbdfx[hotpix] = np.nan
     # Replace nans with Gaussian-weighted average of adjacent pixels
@@ -440,10 +457,17 @@ def construct_output_name(index, files_H):
     return newname
 
 def get_header(file, datapath, header = 'DEWTEM1'):
-    if(any([a in file for a in ['bin1H', 'MFLAT', 'MDARK', 'PFIT']])):
-        return fits.open(os.path.join(datapath,file))[0].header[header]
+    if type(datapath) is list:
+        if(any([a in file for a in ['bin1H', 'MFLAT', 'MDARK', 'PFIT']])):
+            return fits.open(file)[0].header[header]
+        else:
+            return fits.open(file)[1].header[header]
     else:
-        return fits.open(os.path.join(datapath,file))[1].header[header]
+
+        if(any([a in file for a in ['bin1H', 'MFLAT', 'MDARK', 'PFIT']])):
+            return fits.open(os.path.join(datapath,file))[0].header[header]
+        else:
+            return fits.open(os.path.join(datapath,file))[1].header[header]
 
 ## Set output path, output file name, and image name.
 def create_output(newname, outdata, dataH_df, outfolder):
@@ -466,16 +490,21 @@ def prepare_header(outheader, outd):
         outheader['notes'] = notestring
         outheader['filelist'] = filestring
         outheader['bzero'] = 0.0
-    ## Load header in output object. 
+    ## Load header in output object.
     outd.header = outheader
     return outd
 
 def save_file(outd, outfile, outname):
+    print("CALLING ME")
+    outd.save(outname)
+    return outname
+    '''
     if os.path.exists(os.path.join(outfile)) == True:
         print(f"File {outfile} already exists!")
     else:
-        outd.save(outfile)
+        outd.save(outname)
         print(f"File {outname} was saved.")
+    '''
 """
 Batch_process
     Batch process HDR images.
@@ -488,16 +517,17 @@ Batch_process
     Outputs:
         Saves HDR images to output path.
 
-""" 
+"""
 def batch_process(datapaths = [datapath], outfolder = outpath, darkfolder = darkpath, biasfolder = biaspath, flatfolder = flatpath, detect_cosmics = False):
     # Batch process many files
+    out = []
     load_bias(biasfolder)
     if isinstance(datapaths, str):
       print("Error: datapaths must be list of strings, not string")
       return
 
     for curr_path in datapaths:
-        global datapath 
+        global datapath
         datapath = curr_path
         files_L, files_H = load_datafiles(datapath)
         old_curr_date = 0
@@ -505,6 +535,7 @@ def batch_process(datapaths = [datapath], outfolder = outpath, darkfolder = dark
         old_band = ''
         for index in range(len(files_L)):
             output_name = construct_output_name(index, files_H)
+            #print("OUT",output_name)
             print(f"\nProcessing file {output_name}")
             # If already processed, skip
             if os.path.exists(os.path.join(outfolder, output_name)) == True:
@@ -527,11 +558,15 @@ def batch_process(datapaths = [datapath], outfolder = outpath, darkfolder = dark
 
             dataH, dataH_df, dataL, dataL_df = process_one(index, files_L, files_H)
             outdata = process_hdr_images(dataH, dataL)
+            #print("AFTER PROCESS")
             outheader, outd, outname, outfile = create_output(output_name, outdata, dataH_df, outfolder)
             prepare_header(outheader, outd)
+            #print("AFTER HEADER")
             if(detect_cosmics):
                 outd.image = cosmic_file(outd.image)
-            save_file(outd, outfile, outname)
+            #print(outd,outfile,outname)
+            out.append(save_file(outd, outfile, outname))
+    return out
 
 def get_exposure_time(filename):
     if '128' in filename:
@@ -541,17 +576,27 @@ def get_exposure_time(filename):
 
 def sort_dewtemp(datapaths = [datapath]):
     for datapath in datapaths:
-        os.makedirs(os.path.join(datapath, '-15'), exist_ok=True)
-        os.makedirs(os.path.join(datapath, '0'), exist_ok=True)
-        for file in os.listdir(datapath):
-            if file.endswith('.fits'):
-                try:
-                    if get_header(file, datapath) == -15:
-                        # move to folder
-                        os.rename(os.path.join(datapath, file), os.path.join(datapath, "-15", file))
-                    else:
-                        os.rename(os.path.join(datapath, file), os.path.join(datapath, "0", file))
-                except:
-                    print(f"Could not find dewtemp for {file}")
-                
-
+        os.makedirs('-15', exist_ok=True)
+        os.makedirs('0', exist_ok=True)
+        if type(datapaths[0]) is list:
+            for file in datapath:
+                if file.endswith('.fits'):
+                    try:
+                        if get_header(file, datapath) == -15:
+                            # move to folder
+                            os.rename(file, os.path.join("-15", file))
+                        else:
+                            os.rename(file, os.path.join("0", file))
+                    except:
+                        print(f"Could not find dewtemp for {file}")
+        else:
+            for file in os.listdir(datapath):
+                if file.endswith('.fits'):
+                    try:
+                        if get_header(file, datapath) == -15:
+                            # move to folder
+                            os.rename(os.path.join(datapath, file), os.path.join(datapath, "-15", file))
+                        else:
+                            os.rename(os.path.join(datapath, file), os.path.join(datapath, "0", file))
+                    except:
+                        print(f"Could not find dewtemp for {file}")

@@ -10,27 +10,59 @@ class ImageDownloader:
         self.files_cache = []
         self.current_dir = ""
 
-    def get_url(self,file):
+    def get_url(self,file,master=False):
         filename = file
         temp = file.split("_")
-        date = temp[4]
-        year = "20" + date[0:2]
-        month = date[2:4]
-        day = date[4:6]
-        user = temp[6]
-        url = self.prefix + year + "/" + year + "-" + month + "-" + day + "/" + user + "/" + filename
+        if master:
+            if temp[0] == "meandark":
+                date = temp[4].split("-")[0]
+            elif temp[0] == "mflat":
+                date = temp[3].split("-")[0]
+            elif temp[0] == "darkpolyfit":
+                date = temp[2].split("-")[0]
+            else:
+                return
+
+
+            if len(date) > 6:
+                date = date[2:]
+            year = "20" + date[0:2]
+            month = date[2:4]
+            day = date[4:6]
+            #print(temp[0])
+            folder = ""
+            if temp[0] == "meandark":
+                folder = "DARK/"
+            elif temp[0] == "mflat":
+                folder = "FLAT_" + year + "-" + month + "-" + day + "/"
+            elif temp[0] == "darkpolyfit":
+                folder = "PFIT/"
+            url = self.prefix + year + "/Masters-15C/" + folder + filename
+        else:
+            date = temp[4]
+            user = temp[6]
+
+            if len(date) > 6:
+                date = date[2:]
+            year = "20" + date[0:2]
+            month = date[2:4]
+            day = date[4:6]
+            url = self.prefix + year + "/" + year + "-" + month + "-" + day + "/" + user + "/" + filename
+        #print(url)
         return url
 
-    def download_file(self,file):
-        filename = wget.download(self.get_url(file))
+    def download_file(self,file,master=False):
+        print(self.get_url(file,master))
+        filename = wget.download(self.get_url(file,master))
         self.files_cache.append(filename)
         return filename
 
-    def download_cd(self):
+    def download_cd(self,master=False):
         files = [i for i in self.ls() if ".fit" in i]
         filenames = []
         for i in files:
-            filenames.append(self.download_file(i))
+            filenames.append(self.download_file(i,master))
+
         return filenames
 
     def ls(self):
@@ -57,11 +89,13 @@ class ImageDownloader:
                 self.current_dir = "/".join(temp[:-1])
             if len(temp) == 1:
                 self.current_dir = ""
+        elif inp == "":
+            self.current_dir = ""
         else:
             self.current_dir += inp
             if self.current_dir[-1] != "/":
                 self.current_dir += "/"
-        print(self.current_dir)
+        #print(self.current_dir)
 
     '''
     def directory_download(self,date,name=""):
@@ -78,12 +112,12 @@ class ImageDownloader:
         for i in self.files_cache:
             os.remove(i)
 
-downloader = ImageDownloader()
+#print(downloader.download_file("m51_g-band_128.0s_bin1H_220218_083635_hqureshi_seo_0_FCAL.fits"))
+#downloader.clear_files()
 #print(downloader.directory_download("2022-02-18","hqureshi"))
-downloader.cd("2022/2022-02-18/al")
-print(downloader.ls())
-downloader.download_cd()
-downloader.clear_files()
+#downloader.cd("2022/2022-02-18/al")
+#downloader.download_cd()
+#downloader.clear_files()
 
 #url = "https://stars.uchicago.edu/images/StoneEdge/0.5meter/2022/2022-02-18/hqureshi/m51_g-band_128.0s_bin1H_220218_083635_hqureshi_seo_0_FCAL.fits"
 
