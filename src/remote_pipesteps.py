@@ -28,6 +28,7 @@ class Remote:
 
         return out
 
-remote = Remote()
-outs = remote.image_math("2022-02-18","hqureshi",[128],["g-band"])
-print(outs)
+if __name__ == "__main__":
+    remote = Remote()
+    outs = remote.image_math("2022-02-18","hqureshi",[128],["g-band"])
+    print(outs)

@@ -52,7 +52,7 @@ class ImageDownloader:
         return url
 
     def download_file(self,file,master=False):
-        print(self.get_url(file,master))
+        #print(self.get_url(file,master))
         filename = wget.download(self.get_url(file,master))
         self.files_cache.append(filename)
         return filename
@@ -68,7 +68,7 @@ class ImageDownloader:
     def ls(self):
         #print(self.prefix + self.current_dir)
         filename = wget.download(self.prefix + self.current_dir)
-        print("\n")
+        #print("\n")
         with open(filename,"r") as f:
             raw = f.read()
         os.remove(filename)

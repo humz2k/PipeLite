@@ -14,6 +14,17 @@ class DataFinder:
         for i in files:
             os.remove(i)
 
+    def list_files(self,date,user,masks,limit=0):
+        year = date.split("-")[0]
+        self.downloader.cd("")
+        self.downloader.cd(year + "/" + date + "/" + user + "/")
+        files = self.downloader.ls()
+        for i in masks + [".fit"]:
+            files = [j for j in files if i in j]
+        if limit > 0:
+            files = files[:limit]
+        return files
+
     def batch_find(self,date,user,masks=[],dark_masks=[],types=["original"],limit=0):
         year = date.split("-")[0]
         self.downloader.cd("")
@@ -26,7 +37,7 @@ class DataFinder:
         out = []
         for j in types:
             filenames = []
-            print("Downloading ",j+"s")
+            #print("Downloading ",j+"s")
             if j == "original":
                 for i in files:
                     filenames.append(self.downloader.download_file(i))
@@ -57,7 +68,7 @@ class DataFinder:
             for i in dark_masks:
                 files = [j for j in files if i in j]
             out = []
-            print(files)
+            #print(files)
             for i in files:
                 out.append(self.downloader.download_file(i,master=True))
             return out
