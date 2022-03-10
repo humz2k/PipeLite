@@ -10,6 +10,7 @@ class DataFinder:
         self.reset()
 
     def reset(self):
+        self.downloader.clear_files()
         files = [i for i in os.listdir() if ".fit" in i]
         for i in files:
             os.remove(i)

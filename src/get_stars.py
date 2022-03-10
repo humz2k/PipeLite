@@ -111,6 +111,7 @@ class ImageDownloader:
     def clear_files(self):
         for i in self.files_cache:
             os.remove(i)
+        self.files_cache = []
 
 #print(downloader.download_file("m51_g-band_128.0s_bin1H_220218_083635_hqureshi_seo_0_FCAL.fits"))
 #downloader.clear_files()

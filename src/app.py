@@ -1,5 +1,5 @@
 import json
-from flask import Flask,request,jsonify
+from flask import Flask,request,jsonify,send_file
 from remote_pipesteps import *
 from multiprocessing import Process, Lock
 from multiprocessing.sharedctypes import Value,Array
@@ -11,10 +11,17 @@ app = Flask(__name__)
 
 recently_used = []
 
+my_find = DataFinder()
+
 #outs = {}
 def do_queue(queue,cmds):
     remote = Remote()
+    count = 0
     while True:
+        count += 1
+        if count > 1200:
+            count = 0
+            remote.data_finder.reset()
         print(queue[:])
         if queue[:].count(-1) < max_queue_size:
             current_job_no = queue[0]
@@ -39,14 +46,31 @@ def do_queue(queue,cmds):
                 out = "FINISHED:" + ",".join(remote.image_math(date,user,exposures,filters,limit))
                 print(out)
                 cmds[current_job_no].value = str.encode("FINISHED")
+                if count > 900:
+                    count = 900
 
         time.sleep(1)
 
 @app.route('/', methods=['GET'])
 def index():
     command = request.args.get('command')
+
     if command == "ping":
         return jsonify({'alive': '1'})
+
+    if command == "check":
+        job_no = int(request.args.get('job'))
+        val = 0
+        if cmds[job_no].value.decode("utf-8") == "FINISHED":
+            val = 1
+        return jsonify({'finished': str(val)})
+
+    if command == "download":
+        file = request.args.get('file')
+        if file in os.listdir() and '.fit' in file:
+            return send_file(file, attachment_filename=file)
+        return jsonify({'failed': "oh no"})
+
     if command == "image_math":
         date = request.args.get('date')
         user = request.args.get('user')
@@ -69,7 +93,24 @@ def index():
                 out_command = "image_math" + ";" + date+ ";" + user + ";" + exposures + ";" + filters + ";" + limit
 
                 cmds[count].value = str.encode(out_command)
-                return jsonify({'job': str(count)})
+
+                files = my_find.list_files(date,user,masks = ["RAW","bin1H"] + filters.split(","),limit=int(limit))
+                temp_files = []
+                for i in files:
+                    if "bin1H" in i:
+                        temp_files.append(i.replace("_bin1H_","_bin1_"))
+                    elif "bin1L" in i:
+                        temp_files.append(i.replace("_bin1L_","_bin1_"))
+                    else:
+                        temp_files.append(i)
+                files = temp_files
+                files = [i.split("RAW")[0] + "HDR" + i.split("RAW")[1] for i in files]
+                for idx,i in enumerate(files):
+                    temp = i.split("_")
+                    temp[-2] = str(idx)
+                    files[idx] = "_".join(temp)
+                files = ",".join(files)
+                return jsonify({'job': str(count),'files': files})
         return jsonify({'job': 'fail'})
     return jsonify({'What': 'Do You Want'})
 
